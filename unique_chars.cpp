@@ -23,12 +23,30 @@ bool unique_chars_map(const char *str)
     return true;
 }
 
+bool unique_chars_array(const char* str)
+{
+    char *array = new char[256];
+
+    memset(array, 0, 256*sizeof(char));
+    int i;
+    for(i = 0; i < strlen(str); i++)
+    {
+        if(array[str[i]] > 0) return false;
+        array[str[i]]++;
+    }
+    
+    delete[] array;
+
+    return true;
+
+}
+
 bool unique_chars_brute(const char *str)
 {
     const char *p = str;
     while(*p != 0)
     {
-        const char *s = p+1;
+        const char *s = p;
         while(*s != 0)
         {
             s++;
@@ -44,7 +62,7 @@ bool unique_chars_sort(const char * str)
 {
     int i, j;
 
-    char *buf = (char *)malloc(sizeof(char)*strlen(str)+1);
+    char *buf = new char[strlen(str)];
 
     strcpy(buf, str);
 
@@ -69,11 +87,11 @@ bool unique_chars_sort(const char * str)
     for(i = 0; i < len; i++)
         if(buf[i] == buf[i+1]) 
             {
-                delete buf;
+                delete[] buf;
                 return false;
             }
     
-    delete buf;    
+    delete[] buf;    
     return true;
 
 }
@@ -94,6 +112,11 @@ int main(int argc, char* argv[])
         std::cout << "unique_chars_sort: TRUE" << std::endl;   
     else
         std::cout << "unique_chars_sort: FALSE" << std::endl;  
+
+    if(unique_chars_array(argv[1]))
+        std::cout << "unique_chars_array: TRUE" << std::endl;   
+    else
+        std::cout << "unique_chars_array: FALSE" << std::endl;  
 
     return 0;
 }
