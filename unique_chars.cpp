@@ -1,3 +1,8 @@
+/*
+    Checks whether input string contains unique characters or not.
+    unique_chars <string>
+*/
+
 #include <map>
 #include <cstdlib>
 #include <iostream>
