@@ -66,7 +66,6 @@ int main(int argc, char * argv[])
     replace_spaces(buffer);
 
     std::cout << "replace_spaces: " << buffer << std::endl;
-
 }
 
 
