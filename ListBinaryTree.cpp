@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <queue>
 #include <list>
+#include <string>
+
 
 template<class T>
 class ListBinarySearchTree
@@ -124,7 +126,77 @@ class ListBinarySearchTree
                 }
                 last = last->left;
             }
+            else
+            {
+                return;
+            }
+    }
 
+    void remove(const T& value)
+    {
+        bool right;
+        if(root == NULL) return;
+        Node * node = root;
+        Node * parent = NULL;
+        
+        while(1)
+        {
+            if(node == NULL) return;
+            if(value == node->value) break;
+            parent = node;
+            if(value > node->value) 
+            {
+                node = node->right;
+                right = true;
+                continue;
+            }    
+                
+            if(value < node->value)
+            {
+                node = node->left;
+                right = false;
+                continue;
+            }
+        }
+    
+        
+        if((node->left == NULL) && (node->right == NULL))
+        {
+            if(parent != NULL)
+                if(right) parent->right = NULL; else parent->left = NULL;
+            else
+                root = NULL;
+            delete node;
+            return;
+        }
+        
+        if(node->left == NULL)
+        {
+            if(parent != NULL)
+                if(right) parent->right = node->right; else parent->left = node->right;
+            else
+                root = node->right;
+            delete node;
+            return;
+        }
+        
+        if(node->right == NULL)
+        {
+            if(parent != NULL)
+                if(right) parent->right = node->left; else parent->left = node->left;
+            else
+                root = node->left;
+            delete node;
+            return;
+        }
+        
+        Node * min = node->right;
+        while(min->left != NULL) min = min->left;
+        
+        T tmp = min->value;
+        remove(tmp);
+        node->value = tmp;
+        
     }
 
     unsigned max_depth()
@@ -142,6 +214,12 @@ class ListBinarySearchTree
 
     void print()
     {
+        if(root == NULL)
+        {
+            std::cout << "(empty)" << std::endl;
+            return;
+        }
+    
         unsigned depth = max_depth();
         unsigned tab = (1 << depth) - 1;
 
@@ -216,18 +294,28 @@ int main()
 {
     ListBinarySearchTree<int> bst;
     
-    bst.insert(0);
-    bst.insert(20);
-    bst.insert(10);
-    bst.insert(30);    
-    bst.print();
-
-    std::cout << bst.max(1) << std::endl;
-    std::cout << bst.max(2) << std::endl;
-    std::cout << bst.max(6) << std::endl;
-
-//     std::cout << "depth = " << bst.max_depth() << std::endl;
-
+    std::string cmd;
+    
+    while(1)
+    {
+        std::cout << ">";
+        std::cin >> cmd;
+        if(cmd == "q") break;
+        if(cmd == "i")
+        {
+            int value;
+            std::cin >> value;
+            bst.insert(value);
+        }
+        if(cmd == "r")
+        {
+            int value;
+            std::cin >> value;
+            bst.remove(value);
+        }
+        bst.print();
+    }
+    
     return 0;
 }
 
