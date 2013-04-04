@@ -7,6 +7,8 @@
 template<class T>
 class ListBinarySearchTree
 {
+    int k;
+
     struct Node
     {
         T value;
@@ -38,7 +40,48 @@ class ListBinarySearchTree
 
     }
 
+    T nth_max(Node *node, int n)
+    {
+/*        std::cout << "nth_max()" << std::endl;
+        if(node)    
+            std::cout << "value: " << node->value << std::endl;
+        else
+            std::cout << "NULL" << std::endl;
+        std::cout << "n: " << n << std::endl;
+        std::cout << "k: " << n << std::endl;
+*/
+        T max = 0;
     
+        if(node == NULL)
+            return 0;
+
+        max = nth_max(node->right, n);
+//        std::cout << std::endl;
+//        std::cout << "max(rigth) = " << max << std::endl;
+//        std::cout << "k = " << k << " --> " << k+1 << std::endl;
+        k++;
+
+        
+
+        if(k == n)
+        {
+//            std::cout << "k == n" << std::endl;
+            return node->value;
+        }
+        else if(k < n)
+        {
+//            std::cout << "k < n" << std::endl;
+            max = nth_max(node->left, n);
+//            std::cout << "max(left) = " << max << std::endl;
+            return max;
+        }
+        else if(k > n)
+        {
+            return max;
+        }
+
+    }     
+
     public:
 
     ListBinarySearchTree(): root(NULL) {};
@@ -88,6 +131,14 @@ class ListBinarySearchTree
     {
         max_depth(root, 1);
     }
+
+
+    T max(int n)
+    {
+        k = 0;
+        return nth_max(root, n);
+    }  
+    
 
     void print()
     {
@@ -165,14 +216,15 @@ int main()
 {
     ListBinarySearchTree<int> bst;
     
-    bst.insert(10);
+    bst.insert(0);
     bst.insert(20);
-    bst.insert(30);
-    bst.insert(15);    
-    bst.insert(40);
-    bst.insert(50);
-
+    bst.insert(10);
+    bst.insert(30);    
     bst.print();
+
+    std::cout << bst.max(1) << std::endl;
+    std::cout << bst.max(2) << std::endl;
+    std::cout << bst.max(6) << std::endl;
 
 //     std::cout << "depth = " << bst.max_depth() << std::endl;
 
