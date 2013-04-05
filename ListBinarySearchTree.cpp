@@ -9,6 +9,9 @@
 template<class T>
 class ListBinarySearchTree
 {
+
+    typedef std::vector<std::list<T> > VectorList ;
+
     int k;
 
     struct Node
@@ -83,6 +86,91 @@ class ListBinarySearchTree
         }
 
     }     
+
+    Node * find(const T & value)
+    {
+        if(root == NULL) return NULL;    
+        
+        Node * node = root;
+        while(node != NULL)
+        {
+            if(node->value == value) return node;
+            if(value > node->value)
+            {
+                node = node->right;
+                continue;
+            }
+            if(value < node->value)
+            {
+                node = node->left;
+                continue;
+            }
+        }
+        
+        return NULL;
+
+    }
+
+    Node * max(Node * _root)
+    {
+        if(_root == NULL) return NULL;
+        Node * node = _root;
+        while(node->right != NULL)
+            node = node->right;
+        return node;
+    }
+
+    Node * min(Node * _root)
+    {
+        if(_root == NULL) return NULL;
+        Node * node = _root;
+        while(node->left != NULL)
+            node = node->left;
+        return node;
+    }
+
+    Node * parent(Node * node)
+    {
+        Node * p = NULL;
+        Node * n = root;
+        while(n != node)
+        {
+            p = n;
+            if(node->value > n->value)
+            {
+                n = n->right;
+            }
+            else if(node->value < n->value)
+            {
+                n = n->left;
+            }
+    
+        }        
+
+        return p;
+    }
+
+    Node * find_sum(const T& value, Node * start, Node * node, T sum)
+    {
+        if(node == NULL) return;
+        
+        sum += node->value;
+
+        Node * right = find_sum(value, start, node->right, sum);
+        Node * left  = find_sum(value, start, node->left, sum);
+
+        if(node == start)
+        {
+
+        }
+
+        if(sum == value)
+        {
+            return node;
+        }
+
+
+    }
 
     public:
 
@@ -211,6 +299,38 @@ class ListBinarySearchTree
         return nth_max(root, n);
     }  
     
+    T next(const T& value)
+    {
+        Node * m;
+        Node * node = find(value);
+        if(node == NULL) return -123;
+        
+        if(node->right != NULL) 
+        {
+            m = min(node->right);
+            return m->value;
+        }
+        
+        m = parent(node);
+        while(m->value < value) 
+        { 
+            m = parent(m); 
+            if(m == NULL) return value;
+        }
+        return m->value;
+
+    }
+
+   
+
+    VectorList find_sum(const T& value)
+    {
+        VectorList vl;
+        std::vector<T> vec;        
+
+        find_sum(value, root, vl, vec, -1);        
+            
+    }
 
     void print()
     {
@@ -288,35 +408,4 @@ class ListBinarySearchTree
     }
 
 };
-
-
-int main()
-{
-    ListBinarySearchTree<int> bst;
-    
-    std::string cmd;
-    
-    while(1)
-    {
-        std::cout << ">";
-        std::cin >> cmd;
-        if(cmd == "q") break;
-        if(cmd == "i")
-        {
-            int value;
-            std::cin >> value;
-            bst.insert(value);
-        }
-        if(cmd == "r")
-        {
-            int value;
-            std::cin >> value;
-            bst.remove(value);
-        }
-        bst.print();
-    }
-    
-    return 0;
-}
-
 
