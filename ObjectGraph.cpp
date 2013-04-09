@@ -38,7 +38,7 @@ class Graph
         T value;         /* value */
     };
 
-    int _size;
+    unsigned _size;
     vector<Vertex *> V;
 
     int findEmpty()
@@ -90,6 +90,16 @@ class Graph
         _size = 0;
     }
 
+    int max_size()
+    {
+        return V.size();
+    }
+
+    unsigned size()
+    {
+        return _size;
+    }
+
     bool insert(const T& value)
     {
         if(find(value) != EMPTY) return false;
@@ -100,11 +110,16 @@ class Graph
         return ret;
     }
     
-    T get(int index)
+    T value(int index)
     {
         if(V[index] == NULL) return 0;
         
         return V[index]->value;
+    }
+
+    int index(const T & value)
+    {
+        return find(value);        
     }
 
     bool connected(const T& from, const T& to)
@@ -185,7 +200,7 @@ class Graph
                 {
                     parent[y] = v;
                     status[y] = DISCOVERED;
-                    pg.undiscovered(v, y, status); 
+                    if(!pg.undiscovered(v, y, status)) goto _end; 
                     q.push(y);
                 }
                 if(status[y] == DISCOVERED)
@@ -210,6 +225,8 @@ class Graph
             status[v] = PROCESSED;
         }
     
+        _end:
+
         pg.end();
         return true;
     }
@@ -245,38 +262,36 @@ class ProcessGraph
 
     public:
 
-    virtual void start() {}        
+    virtual bool start() {}        
     virtual void end() {}        
             
-    virtual void preprocess(int vertex, vector<int> & status) {}
-    virtual void process(int vertex, vector<int> & status) {}
-    virtual void last(int vertex, vector<int> & status) {}
-    virtual void first(int vertex, vector<int> & status) {}
+    virtual bool preprocess(int vertex, vector<int> & status) {}
+    virtual bool process(int vertex, vector<int> & status) {}
+    virtual bool last(int vertex, vector<int> & status) {}
+    virtual bool first(int vertex, vector<int> & status) {}
     
-    virtual void found(int from, int to, vector<int> & status) {}
-    virtual void undiscovered(int from, int to, vector<int> & status) {}
-    virtual void discovered(int from, int to, vector<int> & status) {}
-    virtual void processed(int from, int to, vector<int> & status) {}
+    virtual bool found(int from, int to, vector<int> & status) {}
+    virtual bool undiscovered(int from, int to, vector<int> & status) { return true;}
+    virtual bool discovered(int from, int to, vector<int> & status) {}
+    virtual bool processed(int from, int to, vector<int> & status) {}
 };
-
 
 
 template<typename T, typename W>
 class ProcessGraphPrint: public ProcessGraph<T, W>
-{
-    
+{ 
     Graph<T, W> * g;
 
     public:
 
-    virtual void process(int vertex, vector<int> & status)
+    virtual bool process(int vertex, vector<int> & status)
     {
-        cout << g->get(vertex) << ", ";    
+        cout << g->value(vertex) << ", ";    
     }
 
-    virtual void last(int vertex, vector<int> & status)
+    virtual bool last(int vertex, vector<int> & status)
     {
-        cout << g->get(vertex);    
+        cout << g->value(vertex);    
     }
 
     virtual void end()
@@ -289,30 +304,58 @@ class ProcessGraphPrint: public ProcessGraph<T, W>
 };
 
 
+
 template<typename T, typename W>
 class ProcessGraphShortestPath: public ProcessGraph<T, W>
 {
     Graph<T, W> * g;
 
+    vector<int> parents;
+
+    int from;
+    int to;
+
+    static const int EMPTY = -1; 
+
     public:
 
-    virtual void process(int vertex)
+    virtual bool undiscovered(int from, int to, vector<int> & status)
     {
-        cout << g->get(vertex) << ", ";    
-    }
-
-    virtual void last(int vertex)
-    {
-        cout << g->get(vertex);    
+        parents[to] = from;
+        if(this->to == to) return false;   
+        return true;
     }
 
     virtual void end()
     {
-        cout << endl;
+        if(parents[to] == EMPTY)
+        {
+            cout << "No path from \'" << g->value(from) << "\' to \'" << g->value(to) << "\'." << endl;
+            return;
+        }
+
+        cout << "from = " << from << endl;
+        cout << "to = " << to << endl;
+        cout << "parents[to] = " << parents[to] << endl;
+
+        int p = to;
+        while(p != from) 
+        {
+            cout << g->value(p) << " <-- ";
+            p = parents[p];
+        }
+
+        cout << g->value(from) << endl;
+
     }
 
-    ProcessGraphShortestPath(Graph<T, W> *graph): g(graph) {}
+    ProcessGraphShortestPath(Graph<T, W> *graph, const T& from, const T& to): g(graph), parents(g->max_size(), EMPTY)
+    {
+        this->from = g->index(from);
+        this->to = g->index(to);       
+    }
 };
+
 
 
 int main(int argc, char *argv[])
@@ -465,6 +508,34 @@ int main(int argc, char *argv[])
             if(!g.BFS(value, pg))
             {
                 cout << "BFS failed." << endl;
+            }
+            continue;
+        }
+
+
+        if(cmd == "spu")
+        {
+            string from;
+            string to;
+        
+            if(in.is_open())
+            {
+                in >> from;
+                in >> to;
+                in.ignore(MAX_CMD_LENGTH, '\n');
+            }
+            else
+            {
+                cin >> from;
+                cin >> to;
+                cin.ignore(MAX_CMD_LENGTH, '\n');
+            }
+             
+            ProcessGraphShortestPath<string, int> pg(&g, from, to);
+    
+            if(!g.BFS(from, pg))
+            {
+                cout << "SPU failed." << endl;
             }
             continue;
         }
