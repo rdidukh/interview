@@ -1,4 +1,5 @@
 #include <list>
+#include <vector>
 #include <queue>
 #include <stack>
 #include <utility>
@@ -12,241 +13,268 @@ using namespace std;
 
 const unsigned MAX_CMD_LENGTH = 256;
 
-template <typename T, typename W>
-class ListWeightedGraph
+template <typename T, typename W = int>
+class Graph
 {
-    class Vertex;
-    typedef list<pair<Vertex *, W> > ListPair;
+    static const int UNDISCOVERED = 0;
+    static const int DISCOVERED = 1;
+    static const int PROCESSED = 2;
+    static const int EMPTY = -1;
+
+    struct Vertex;
+
+    struct Edge
+    {
+        int vertex;
+        W weight;
+    };
+
     struct Vertex
     {
-        ListPair V;  /* neighbours */
-        T value;                     /* value */
+        list<Edge *> nb; /* neighbours */
+        T value;         /* value */
     };
-    
-    typedef list<Vertex *> List;
-    List V;
 
-    //ListGraph();
+    int _size;
+    vector<Vertex *> V;
 
-    Vertex* find(const T& value)
-    {    
-        for(typename List::iterator it = V.begin(); it != V.end(); it++)
-            if((*it)->value == value) return (*it);
+    int findEmpty()
+    {
+        for(int i = 0; i < V.size(); i++)
+            if(V[i] == NULL) return i;
         
-        return NULL;
+        return EMPTY;
+    }
+
+    int find(const T& value)
+    {    
+        int c = 0;
+        for(int i = 0; i < V.size(); i++)
+        {
+            if(V[i] == NULL) continue;
+            if(V[i]->value == value) return i;
+            if(++c == _size) return EMPTY;
+        }
+
+        return EMPTY;
     }
     
+    bool connect(int from, int to, W weight)
+    {
+        if(from == EMPTY || to == EMPTY) return false;
+        Edge *e = new Edge();
+        e->vertex = to;
+        e->weight = weight;
+        V[from]->nb.push_back(e);
+        return true;
+    }
+
+    T get(int index)
+    {
+        if(V[index] == NULL) return 0;
+        
+        return V[index]->value;
+    }
+
+    bool insert(Vertex * vertex)
+    {
+        int i = findEmpty();       
+        if(i == EMPTY) return false; 
+        V[i] = vertex;
+        _size++;
+        return true;
+    }
+
     public:
     
-    void insert(const T& value)
+    Graph(const unsigned size): V(size, (Vertex *)NULL)
     {
-        if(find(value) != NULL) return;
-        Vertex *v = new Vertex();
-        v->value = value;
-        V.push_back(v);
+        _size = 0;
     }
-    
-    /* Insert edge with weight 'w' from 'v1' to 'v2'. */
-    void insert(const T& v1, const T& v2, const W& w)
-    {
-        Vertex *from = find(v1);     
-        Vertex *to = find(v2);
-        
-        if(from == NULL || to == NULL) return;
-        
-        from->V.push_back(make_pair<Vertex *, W>(to, w));
-    }
-    
-    void BFS(const T& value)
-    {
-    
-        Vertex * start = find(value);
-        if(start == NULL) return;
-    
-        static const int UNDISCOVERED = 0;
-        static const int DISCOVERED = 1;
-        static const int PROCESSED = 2;
 
-    
-        map<Vertex *, int> status;
-        map<Vertex *, Vertex *> parent;
-    
-        for(typename List::iterator it = V.begin(); it != V.end(); it++)
-            status[*it] = UNDISCOVERED;
-        
-        queue<Vertex *> q;
-        q.push(start);
-        status[start] = DISCOVERED;
-        parent[start] = NULL;
-        
-        while(!q.empty())
-        {
-            Vertex *v = q.front();    
-            q.pop();
-           
-            status[v] = PROCESSED;
-        
-            cout << v->value;
-        
-            for(typename ListPair::iterator it = v->V.begin(); it != v->V.end(); it++)
-            {
-                if(status[it->first] == UNDISCOVERED)
-                {
-                    status[it->first] = DISCOVERED;
-                    parent[it->first] = v;    
-                    q.push(it->first);
-                }
-                
-            }
-                  
-            if(!q.empty()) cout << ", ";     
-                    
-        }
-    
-        cout << endl;
+    bool insert(const T& value)
+    {
+        if(find(value) != EMPTY) return false;
+        Vertex * v = new Vertex();
+        v->value = value;      
+        bool ret = insert(v);
+        if(!ret) delete v;
+        return ret;
     }
     
-    void DFS(const T& value)
+    bool connected(const T& from, const T& to)
     {
-    
-        Vertex * start = find(value);
-        if(start == NULL) return;
-    
-        static const int UNDISCOVERED = 0;
-        static const int DISCOVERED = 1;
-        static const int PROCESSED = 2;
+        int vfrom = find(from);
+        int vto = find(to);
+        if(vfrom == EMPTY || vto == EMPTY) return false;    
+        for(typename list<Edge *>::iterator jt = V[vfrom]->nb.begin(); jt != V[vfrom]->nb.end(); jt++)
+            if((*jt)->vertex == vto) return true;
+                
+        return false;
+    }
 
-    
-        map<Vertex *, int> status;
-        map<Vertex *, Vertex *> parent;
-    
-        for(typename List::iterator it = V.begin(); it != V.end(); it++)
-            status[*it] = UNDISCOVERED;
-        
-        stack<Vertex *> q;
-        q.push(start);
-        status[start] = DISCOVERED;
-        parent[start] = NULL;
-        
-        while(!q.empty())
-        {
-            Vertex *v = q.top();    
-            q.pop();
-           
-            status[v] = PROCESSED;
-        
-            cout << v->value;
-        
-            for(typename ListPair::iterator it = v->V.begin(); it != v->V.end(); it++)
-            {
-                if(status[it->first] == UNDISCOVERED)
-                {
-                    status[it->first] = DISCOVERED;
-                    parent[it->first] = v;    
-                    q.push(it->first);
-                }
-                
-            }
-                  
-            if(!q.empty()) cout << ", ";     
-                    
-        }
-    
-        cout << endl;
-    }
-    
-    void shortest_path_unweighted(const T & v1, const T & v2)
+    bool neighbours(const T& value, map<T, W>& nb)
     {
-        Vertex * start = find(v1);
-        Vertex * end = find(v2);
-        if(start == NULL || end == NULL) return;
-    
-        static const int UNDISCOVERED = 0;
-        static const int DISCOVERED = 1;
-        static const int PROCESSED = 2;
-    
-        map<Vertex *, int> status;
-        map<Vertex *, Vertex *> parent;
-    
-        for(typename List::iterator it = V.begin(); it != V.end(); it++)
-        {
-            status[*it] = UNDISCOVERED;
-            parent[*it] = NULL;
-        }
+        int vfrom = find(value);
+        if(vfrom == EMPTY) return false;
+
+        nb.clear();
+
+        for(typename list<Edge *>::iterator jt = V[vfrom]->nb.begin(); jt != V[vfrom]->nb.end(); jt++)
+            nb[V[(*jt)->vertex]] = (*jt)->weight;
+    }
+
+    W weight(const T& from, const T& to)
+    {
+        int vfrom = find(from);
+        int vto = find(to);
+        if(vfrom == EMPTY || vto == EMPTY) return 0;     
+
+        for(typename list<Edge *>::iterator jt = V[vfrom]->nb.begin(); jt != V[vfrom]->nb.end(); jt++)
+            if((*jt)->vertex == vto) return (*jt)->weight;
+
+        return 0;
+    }
+
+    /* Insert edge with weight 'weight' from 'from' vertex to 'to' vertex. */
+    bool connect(const T& from, const T& to, const W& weight)
+    {
+        int vfrom = find(from);     
+        int vto = find(to);
         
+        return connect(vfrom, vto, weight);
+    }
+    
+    template<typename A, typename B = int>
+    class ProcessGraph
+    {
+        Graph<A, B> &g;    
+            
+        public:
+
+       // struct GraphData
+
+        ProcessGraph(Graph &graph): g(graph) {}
+        virtual void start() {}        
+        virtual void end() {}        
+                
+        virtual void preprocess(int vertex) {}
+        virtual void process(int vertex) {}
+
+        virtual void found(int from, int to, int weight) {}
+        virtual void undiscovered(int from, int to, int weight) {}
+        virtual void discovered(int from, int to, int weight) {}
+        virtual void processed(int from, int to, int weight) {}
+    };
+
+    template<typename TYPE, typename WEIGHT>
+    bool BFS(const T& value, ProcessGraph<TYPE, WEIGHT> & pg)
+    {
+        int start = find(value);
+        if(start == EMPTY) return false;
+  
+        vector<int> status(V.size(), UNDISCOVERED);       
         
-        queue<Vertex *> q;
-        q.push(start);
+        pg.start();
+
+        queue<int> q;
+        q.push(start);            
+            
         status[start] = DISCOVERED;
         
         while(!q.empty())
         {
-            Vertex *v = q.front();    
+            int v = q.front();
             q.pop();
-           
-            status[v] = PROCESSED;
-        
-            for(typename ListPair::iterator it = v->V.begin(); it != v->V.end(); it++)
+                        
+            pg.preprocess(v);
+            
+            for(typename list<Edge *>::iterator jt = V[v]->nb.begin(); jt != V[v]->nb.end(); jt++)
             {
-                if(status[it->first] == UNDISCOVERED)
-                {
-                    status[it->first] = DISCOVERED;
-                    parent[it->first] = v; 
-                    if(it->first == end) goto outloop;
-                    q.push(it->first);
-                    
-                }
+                int y = (*jt)->vertex;
+                pg.found(v, y, (*jt)->weight);
                 
-            }    
-                    
+                if(status[y] == UNDISCOVERED)
+                {
+                    pg.undiscovered(v, y, (*jt)->weight);
+                    status[y] = DISCOVERED;
+                    q.push(y);
+                }
+                if(status[y] == DISCOVERED)
+                {
+                    pg.discovered(v, y, (*jt)->weight);        
+                }
+                if(status[y] == PROCESSED)
+                {
+                    pg.processed(v, y, (*jt)->weight);        
+                }
+
+            }
+
+            pg.process(v);
+
+            status[v] = PROCESSED;
         }
     
-        outloop:
-    
-        if(parent[end] == NULL) cout << "No path" << endl;
-        while(end != NULL)
-        {
-            cout << end->value;
-            if(parent[end] != NULL)
-                cout << " <-- ";
-            end = parent[end];
-        }
-        cout << endl;
+        pg.end();
         
     }
-    
-    
+
     void print()
     {
-        if(V.empty()) cout << "(empty)" << endl;
-    
-        for(typename List::iterator it = V.begin(); it != V.end(); it++)
+        if(_size == 0) 
         {
-            cout << (*it)->value << " --> ";
-            for(typename ListPair::iterator jt = (*it)->V.begin(); jt != (*it)->V.end(); jt++)
-                cout << "[" << jt->first->value << ", " << jt->second << "]  ";
-            
-            cout << endl;
+            cout << "(empty)" << endl;
+            return;
         }
-    
-    
+        int c = 0;
+        for(int i = 0; i < V.size(); i++)
+        {
+            if(V[i] == NULL) continue;
+            cout << V[i]->value << " --> ";
+            for(typename list<Edge *>::iterator jt = V[i]->nb.begin(); jt != V[i]->nb.end(); jt++)
+                cout << "[\'" << V[(*jt)->vertex]->value << "\', " << (*jt)->weight << "] ";
+            cout << endl;
+            if(++c == _size) return;
+        }  
     }
     
 };
 
+template<typename T, typename W>
+class ProcessGraphPrint: public Graph::ProcessGraph<T, W>
+{
+    virtual void process(int vertex)
+    {
+        cout << g.get(vertex) << ", ";    
+    }
+
+    virtual void end()
+    {
+        cout << endl;
+    }
+
+};
+
+
+
 int main(int argc, char *argv[])
 {
 
-    ListWeightedGraph<string, int> g;
+    Graph<string, int> g(100);
 
     string cmd;
 
     ifstream in;
 
-    if(argc > 1) in.open(argv[1]);
+    if(argc > 1)
+    {
+        in.open(argv[1]);
+        if(!in.is_open())
+            cerr << "Error opening file." << endl;
+    }
 
-    if(!in.is_open())
-                cerr << "Error opening file." << endl;
+    
 
     while(1)
     {    
@@ -266,13 +294,12 @@ int main(int argc, char *argv[])
             if(cin.eof()) break;
         }
             
-//        cout << "CMD = " << cmd << endl;
     
         if(cmd == "quit" || cmd == "q" || cmd == "exit")
         {
             if(in.is_open())
             {
-                cerr << "The \'quit\' command in a script file is not supported." << endl;
+                cerr << "\'QUIT\' command in a script file is not supported." << endl;
                 continue;
             }
                 
@@ -281,7 +308,6 @@ int main(int argc, char *argv[])
     
         if(cmd == "insert" || cmd == "ins" || cmd == "i")
         {                 
-//            cout << "INSERT" << endl;
             string value;
         
             if(in.is_open())
@@ -295,14 +321,13 @@ int main(int argc, char *argv[])
                 cin.ignore(MAX_CMD_LENGTH, '\n');
             }
             
-            g.insert(value);
+            if(!g.insert(value)) cout << "Insertion failed." << endl;
             
             continue;
         }
     
         if(cmd == "connect" || cmd == "con" || cmd == "c")
         {
-//            cout << "CONNECT" << endl;
             int w;
             string v1, v2;
             if(in.is_open())
@@ -320,15 +345,16 @@ int main(int argc, char *argv[])
                 cin.ignore(MAX_CMD_LENGTH, '\n');
             }
             
-            g.insert(v1, v2, w);
+            if(!g.connect(v1, v2, w))
+            {
+                cout << "Connection failed." << endl;
+            }
             continue;
         }
     
     
         if(cmd == "print" || cmd == "p")
-        {
-//            cout << "PRINT" << endl;
-        
+        {   
             if(in.is_open())
             {
                 in.ignore(MAX_CMD_LENGTH, '\n');
@@ -346,7 +372,7 @@ int main(int argc, char *argv[])
         {
             if(in.is_open())
             {
-                cerr << "The \'file\' command in a script file is not supported." << endl;
+                cerr << "\'FILE\' command in a script file is not supported." << endl;
                 continue;
             }
         
@@ -361,7 +387,29 @@ int main(int argc, char *argv[])
             
             continue;
         }
+
+        if(cmd == "bfs")
+        {
+            string value;
+        
+            if(in.is_open())
+            {
+                in >> value;
+                in.ignore(MAX_CMD_LENGTH, '\n');
+            }
+            else
+            {
+                cin >> value;
+                cin.ignore(MAX_CMD_LENGTH, '\n');
+            }
+             
+            ProcessGraphPrint pg(g);
     
+            g.BFS(value, pg);
+            continue;
+        }
+
+/*    
         if(cmd == "bfs")
         {
             string value;
@@ -380,7 +428,8 @@ int main(int argc, char *argv[])
             g.BFS(value);
             continue;
         }
-
+*/
+/*
         if(cmd == "dfs")
         {
             string value;
@@ -400,6 +449,8 @@ int main(int argc, char *argv[])
             continue;
         }
 
+*/
+/*
         if(cmd == "spu")
         {
             string v1;
@@ -420,7 +471,18 @@ int main(int argc, char *argv[])
             g.shortest_path_unweighted(v1, v2);
             continue;
         }
-    
+*/    
+
+        cout << "Unknown command." << endl;
+        if(in.is_open())
+        {
+            in.ignore(MAX_CMD_LENGTH, '\n');
+        }
+        else
+        {
+            cin.ignore(MAX_CMD_LENGTH, '\n');
+        }
+
     }
         
     return 0;
