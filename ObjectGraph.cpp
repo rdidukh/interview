@@ -13,6 +13,9 @@ using namespace std;
 
 const unsigned MAX_CMD_LENGTH = 256;
 
+template<typename T, typename W>
+class ProcessGraph;
+
 template <typename T, typename W = int>
 class Graph
 {
@@ -69,12 +72,7 @@ class Graph
         return true;
     }
 
-    T get(int index)
-    {
-        if(V[index] == NULL) return 0;
-        
-        return V[index]->value;
-    }
+
 
     bool insert(Vertex * vertex)
     {
@@ -102,6 +100,13 @@ class Graph
         return ret;
     }
     
+    T get(int index)
+    {
+        if(V[index] == NULL) return 0;
+        
+        return V[index]->value;
+    }
+
     bool connected(const T& from, const T& to)
     {
         int vfrom = find(from);
@@ -143,81 +148,70 @@ class Graph
         int vto = find(to);
         
         return connect(vfrom, vto, weight);
-    }
-    
-    template<typename A, typename B = int>
-    class ProcessGraph
+    }  
+  
+    bool BFS(const T& value, ProcessGraph<T, W> & pg)
     {
-        Graph<A, B> &g;    
-            
-        public:
 
-       // struct GraphData
-
-        ProcessGraph(Graph &graph): g(graph) {}
-        virtual void start() {}        
-        virtual void end() {}        
-                
-        virtual void preprocess(int vertex) {}
-        virtual void process(int vertex) {}
-
-        virtual void found(int from, int to, int weight) {}
-        virtual void undiscovered(int from, int to, int weight) {}
-        virtual void discovered(int from, int to, int weight) {}
-        virtual void processed(int from, int to, int weight) {}
-    };
-
-    template<typename TYPE, typename WEIGHT>
-    bool BFS(const T& value, ProcessGraph<TYPE, WEIGHT> & pg)
-    {
         int start = find(value);
+
         if(start == EMPTY) return false;
   
-        vector<int> status(V.size(), UNDISCOVERED);       
-        
+        vector<int> status(V.size(), (int)UNDISCOVERED);       
+        vector<int> parent(V.size(), (int)EMPTY);        
+
         pg.start();
 
         queue<int> q;
         q.push(start);            
             
         status[start] = DISCOVERED;
-        
+        pg.first(start, status);        
+
         while(!q.empty())
         {
             int v = q.front();
             q.pop();
                         
-            pg.preprocess(v);
+            pg.preprocess(v, status);
             
             for(typename list<Edge *>::iterator jt = V[v]->nb.begin(); jt != V[v]->nb.end(); jt++)
             {
                 int y = (*jt)->vertex;
-                pg.found(v, y, (*jt)->weight);
-                
+
+                pg.found(v, y, status);
+
                 if(status[y] == UNDISCOVERED)
                 {
-                    pg.undiscovered(v, y, (*jt)->weight);
+                    parent[y] = v;
                     status[y] = DISCOVERED;
+                    pg.undiscovered(v, y, status); 
                     q.push(y);
                 }
                 if(status[y] == DISCOVERED)
                 {
-                    pg.discovered(v, y, (*jt)->weight);        
+                    pg.discovered(v, y, status);        
                 }
                 if(status[y] == PROCESSED)
                 {
-                    pg.processed(v, y, (*jt)->weight);        
+                    pg.processed(v, y, status);        
                 }
-
             }
 
-            pg.process(v);
+            if(q.empty())
+            {
+                pg.last(v, status);
+            }
+            else
+            {
+                pg.process(v, status);
+            }
 
             status[v] = PROCESSED;
         }
     
         pg.end();
-        
+        return true;
     }
 
     void print()
@@ -241,12 +235,48 @@ class Graph
     
 };
 
+
 template<typename T, typename W>
-class ProcessGraphPrint: public Graph::ProcessGraph<T, W>
+class ProcessGraph
 {
-    virtual void process(int vertex)
+    protected: 
+    
+    ProcessGraph() {}        
+
+    public:
+
+    virtual void start() {}        
+    virtual void end() {}        
+            
+    virtual void preprocess(int vertex, vector<int> & status) {}
+    virtual void process(int vertex, vector<int> & status) {}
+    virtual void last(int vertex, vector<int> & status) {}
+    virtual void first(int vertex, vector<int> & status) {}
+    
+    virtual void found(int from, int to, vector<int> & status) {}
+    virtual void undiscovered(int from, int to, vector<int> & status) {}
+    virtual void discovered(int from, int to, vector<int> & status) {}
+    virtual void processed(int from, int to, vector<int> & status) {}
+};
+
+
+
+template<typename T, typename W>
+class ProcessGraphPrint: public ProcessGraph<T, W>
+{
+    
+    Graph<T, W> * g;
+
+    public:
+
+    virtual void process(int vertex, vector<int> & status)
     {
-        cout << g.get(vertex) << ", ";    
+        cout << g->get(vertex) << ", ";    
+    }
+
+    virtual void last(int vertex, vector<int> & status)
+    {
+        cout << g->get(vertex);    
     }
 
     virtual void end()
@@ -254,8 +284,35 @@ class ProcessGraphPrint: public Graph::ProcessGraph<T, W>
         cout << endl;
     }
 
+    ProcessGraphPrint(Graph<T, W> *graph): g(graph) {}
+
 };
 
+
+template<typename T, typename W>
+class ProcessGraphShortestPath: public ProcessGraph<T, W>
+{
+    Graph<T, W> * g;
+
+    public:
+
+    virtual void process(int vertex)
+    {
+        cout << g->get(vertex) << ", ";    
+    }
+
+    virtual void last(int vertex)
+    {
+        cout << g->get(vertex);    
+    }
+
+    virtual void end()
+    {
+        cout << endl;
+    }
+
+    ProcessGraphShortestPath(Graph<T, W> *graph): g(graph) {}
+};
 
 
 int main(int argc, char *argv[])
@@ -403,9 +460,12 @@ int main(int argc, char *argv[])
                 cin.ignore(MAX_CMD_LENGTH, '\n');
             }
              
-            ProcessGraphPrint pg(g);
+            ProcessGraphPrint<string, int> pg(&g);
     
-            g.BFS(value, pg);
+            if(!g.BFS(value, pg))
+            {
+                cout << "BFS failed." << endl;
+            }
             continue;
         }
 
