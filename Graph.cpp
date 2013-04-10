@@ -231,6 +231,107 @@ class Graph
         return true;
     }
 
+    bool Dijkstra(const T & from, const T & to)
+    {
+        int start = find(from);
+        if(start == EMPTY) return false;
+        
+        int end = find(to);
+        if(end == EMPTY) return false;
+    
+        vector<int>  parent(V.size(), (int)EMPTY);
+        vector<bool> intree(V.size(), false);
+        vector<bool> inf(V.size(), true);
+        vector<int> dist(V.size(), 0);
+    
+        inf[start] = false;
+        
+        int v = start;
+        while(!intree[v])
+        {
+  
+            if(v == end) break;
+        
+            for(typename list<Edge*>::iterator it = V[v]->nb.begin(); it != V[v]->nb.end(); it++)
+            {
+                int y = (*it)->vertex;
+            
+                if(intree[y]) continue;
+            
+                W w = (*it)->weight;
+                
+                if(inf[y] && inf[v])
+                {
+                    parent[y] = v;
+                }
+                else if(inf[y] && !inf[v])
+                {
+                    inf[y] = false;
+                    dist[y] = dist[v] + w;
+                    parent[y] = v;
+                }
+                else if(dist[y] > dist[v] + w)
+                {
+                    parent[y] = v;
+                    dist[y] = dist[v] + w;
+                }
+                
+            }
+        
+            intree[v] = true;
+        
+            int is_inf = true;
+            int min;
+            v = 0;
+            for(int i = 0; i < V.size(); i++)
+            {
+                if(intree[i] || V[i] == NULL) continue;
+                
+                if(intree[v] && inf[i] && is_inf)
+                {
+                    v = i;
+                    continue;
+                }
+                else if(inf[i] && !is_inf)
+                {
+                    
+                }
+                else if(!inf[i] && is_inf)
+                {
+                    is_inf = false;
+                    min = dist[i];
+                    v = i;
+                }    
+                else if(min > dist[i])
+                {
+                    min = dist[i];
+                    v = i;
+                }
+            }
+        
+//            cout << "selected: " << V[v]->value << endl;
+        
+        }
+        
+        cout << "done." << endl;
+        
+        v = end;
+        while(v != start)
+        {
+            cout << V[v]->value << " <-- ";
+            v = parent[v];
+            if(v == EMPTY)
+            {
+                            cout << "No path from \'" << V[start]->value << "\' to \'" << V[end]->value << "\'." << endl;
+            return true;
+            }
+        }
+    
+        cout << V[start]->value << " : " << dist[end] << endl;
+        return true;
+    }
+
+
     void print()
     {
         if(_size == 0) 
@@ -539,6 +640,34 @@ int main(int argc, char *argv[])
             }
             continue;
         }
+
+        
+        if(cmd == "dij")
+        {
+            string from;
+            string to;
+        
+            if(in.is_open())
+            {
+                in >> from;
+                in >> to;
+                in.ignore(MAX_CMD_LENGTH, '\n');
+            }
+            else
+            {
+                cin >> from;
+                cin >> to;
+                cin.ignore(MAX_CMD_LENGTH, '\n');
+            }
+             
+            if(!g.Dijkstra(from, to))
+            {
+                cout << "SPU failed." << endl;
+            }
+            continue;
+        }
+
+        
 
 /*    
         if(cmd == "bfs")
