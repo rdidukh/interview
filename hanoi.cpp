@@ -86,6 +86,9 @@ void onemove(stack<int> & from, stack<int> & to)
 
 void move(stack<int> & from, stack<int> & to, stack<int> & tmp, int c)
 {
+
+    cout "" <<  << endl'
+
     if(c == 1)
     {
         onemove(from, to);
