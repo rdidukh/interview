@@ -332,6 +332,82 @@ class Graph
     }
 
 
+
+    bool flow(const T & from, const T & to)
+    {
+        int start = find(from);
+        if(start == EMPTY) return false;
+        
+        int end = find(to);
+        if(end == EMPTY) return false;
+    
+        vector<int>  parent(V.size(), (int)EMPTY);
+        vector<bool> intree(V.size(), false);
+        vector<W> flow(V.size(), 0);
+          
+        flow[start] = 10000; /* INFINITY */
+
+        int v = start;
+        while(!intree[v])
+        {
+            if(v == end) break;
+        
+            for(typename list<Edge*>::iterator it = V[v]->nb.begin(); it != V[v]->nb.end(); it++)
+            {
+                int y = (*it)->vertex;
+            
+                if(intree[y]) continue;
+                
+                W w = min((*it)->weight, flow[v]);
+  
+                if(flow[y] < w)
+                {
+                    flow[y] = w;
+                    cout << "flow[" << V[y]->value << "] = " << w << endl;
+                    cout << "parent[" << V[y]->value << "] = " << V[v]->value << endl;
+                    parent[y] = v;
+                }
+                                           
+            }
+        
+            intree[v] = true;
+        
+            int max = 0;
+            v = 0;
+            for(int i = 0; i < V.size(); i++)
+            {
+                if(!intree[i] && max < flow[i])
+                {
+                    max = flow[i];
+                    v = i;
+                }
+            }
+        
+            cout << "selected: " << V[v]->value << endl;
+        
+        }
+        
+        cout << "done." << endl;
+        
+        v = end;
+        while(v != start)
+        {
+            cout << V[v]->value << " <-- ";
+            v = parent[v];
+            if(v == EMPTY)
+            {
+                cout << "No path from \'" << V[start]->value << "\' to \'" << V[end]->value << "\'." << endl;
+                return true;
+            }
+        }
+    
+        cout << V[start]->value << " : flow = " << flow[end] << endl;
+        return true;
+    }
+
+
+
+
     void print()
     {
         if(_size == 0) 
@@ -662,12 +738,35 @@ int main(int argc, char *argv[])
              
             if(!g.Dijkstra(from, to))
             {
-                cout << "SPU failed." << endl;
+                cout << "Dijkstra failed." << endl;
             }
             continue;
         }
 
+        if(cmd == "flow")
+        {
+            string from;
+            string to;
         
+            if(in.is_open())
+            {
+                in >> from;
+                in >> to;
+                in.ignore(MAX_CMD_LENGTH, '\n');
+            }
+            else
+            {
+                cin >> from;
+                cin >> to;
+                cin.ignore(MAX_CMD_LENGTH, '\n');
+            }
+             
+            if(!g.flow(from, to))
+            {
+                cout << "SPU failed." << endl;
+            }
+            continue;
+        }
 
 /*    
         if(cmd == "bfs")
