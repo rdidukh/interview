@@ -28,8 +28,6 @@ int main(int argc, char* argv[])
 
 	int *B = (int *)calloc(sizeof(int), N);
 	
-	
-	
 	for(i = 0; i < N; i++)
 	{
 		B[i] = 1;
@@ -53,5 +51,4 @@ int main(int argc, char* argv[])
 	free(B);
 
 	return 0;
-
 }
