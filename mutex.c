@@ -13,7 +13,7 @@ void *hello(void *args)
     printf("thread = %i LOCKED\n", args);
     counter++;
     usleep(100);
-    printf("thread = %i, counter = %i\n", args, counter);
+    printf("thread = %i, counter = %i, &counter = %p\n", args, counter, &counter);
     pthread_mutex_unlock(&mutex);
     printf("thread = %i EXIT\n", args);
 }
