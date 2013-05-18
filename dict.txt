@@ -1,0 +1,8 @@
+6
+cat
+dog
+dat
+dbt
+dbg
+cog
+
