@@ -1,0 +1,10 @@
+i A
+i B
+i C
+i D
+c A B 2
+c A C 4
+c B D 6
+c C D 1
+
+
