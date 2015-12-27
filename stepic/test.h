@@ -1,3 +1,5 @@
+#include <iostream>
+
 #define RED_COLOR 	"\033[0;31m"
 #define GREEN_COLOR	"\033[0;32m"
 #define NO_COLOR	"\033[0m"
@@ -23,7 +25,6 @@
 			std::cout << GREEN_COLOR << "OK: " #x " != NULL" << NO_COLOR << std::endl;	\
 		} \
 	} while(0);
-
 
 #define ASSERT_EQ(expected, real) \
 	do {	\
