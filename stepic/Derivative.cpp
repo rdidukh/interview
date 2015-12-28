@@ -9,32 +9,52 @@ std::map<unsigned, int> strToPoly(const string & str)
 
 	enum State
 	{
-		Ready,
 		Coef,
 		Power,
 	};
 
 	State state = Ready;
-	int coef = 1;
-	unsigned power = 1;
+	int coef = 0;
+	unsigned power = 0;
 	int sign = 1;
 
 	for(auto c: str)
 	{
-		if(state == Ready)
+		if(c == '-' || c == '+')
 		{
-
+			sign = (c=='+')? 1 : -1;
+			poly[power] += sign*coef;
+			state = Ready;
+			coef = 0
+			power = 0;
 		}
 		else if(state == Coef)
 		{
-
+			if(c >= '0' && c <= '9')
+			{
+				coef *= 10;
+				coef += c - '0';
+			}
+			else if(c == 'x')
+			{
+				coef = 1;
+				state = Power;
+			}
+			else if(c == '*')
+			{
+				state = Power;
+			}
+			else
+			{
+				assert(false);
+			}
 		}
 		else if(state == Power)
 		{
 
 		}
 
-		poly[power] += coef;
+		
 	}
 }
 
