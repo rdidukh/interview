@@ -1,8 +1,9 @@
 #include <iostream>
+#include <map>
+#include <string>
+#include <cassert>
 
-#include "test.h"
-
-std::map<unsigned, int> strToPoly(const string & str)
+std::map<unsigned, int> strToPoly(const std::string & str)
 {
 	std::map<unsigned, int> poly;
 	poly[0] = 0;
@@ -13,7 +14,7 @@ std::map<unsigned, int> strToPoly(const string & str)
 		Power,
 	};
 
-	State state = Ready;
+	State state = Coef;
 	int coef = 0;
 	unsigned power = 0;
 	int sign = 1;
@@ -24,8 +25,8 @@ std::map<unsigned, int> strToPoly(const string & str)
 		{
 			sign = (c=='+')? 1 : -1;
 			poly[power] += sign*coef;
-			state = Ready;
-			coef = 0
+			state = Coef;
+			coef = 0;
 			power = 0;
 		}
 		else if(state == Coef)
@@ -47,21 +48,72 @@ std::map<unsigned, int> strToPoly(const string & str)
 			else
 			{
 				assert(false);
-			}
+			} 
 		}
 		else if(state == Power)
 		{
-
-		}
-
-		
+			if(c >= '0' && c <= '9')
+			{
+				power *= 10;
+				power += c - '0';
+			}
+			else if(c == '^')
+			{
+				power = 0;
+			}
+			else
+			{
+				assert(false);
+			}
+		}	
 	}
+
+	return poly;
 }
 
-std::string derivative(std::string polynomial)
+std::string polyToStr(std::map<unsigned, int> & poly)
 {
-    return (std::string)"";
+	return std::string("");
 }
+
+std::map<unsigned, int> df(const std::map<unsigned, int> & poly)
+{
+	std::map<unsigned, int> result;
+	result[0] = 0;
+
+	for(const auto & x: poly)
+	{
+		if(x.first != 0)
+		{
+			result[x.first-1] = x.first * x.second;
+		} 
+	}
+
+	return result;
+}
+
+void debugPrint(const std::map<unsigned, int> & poly)
+{
+	for(const auto & x: poly)
+	{
+		std::cout << x.first << "->" << x.second << "  ";
+	}
+	std::cout << std::endl;
+}
+
+std::string derivative(std::string str)
+{
+	std::cout << "input: " << str << std::endl;
+	auto inPoly = strToPoly(str);
+	debugPrint(inPoly);
+	auto outPoly = df(inPoly);
+	debugPrint(inPoly);
+	std::string result = polyToStr(outPoly);
+	std::cout << "result: " << result << std::endl;
+    return result;
+}
+
+#include "test.h"
 
 int main(int argc, char * argv[])
 {

@@ -1,7 +1,12 @@
+FLAGS=-Wall -std=c++11
+
 all: alloc deriv
 
-deriv:
-	$(CXX) -std=c++11 Derivative.cpp -o deriv
+deriv: Derivative.cpp
+	$(CXX) $(FLAGS) Derivative.cpp -o deriv
 
-alloc:
-	$(CXX) -std=c++11 MyAllocator.cpp -o alloc
+alloc: MyAllocator.cpp
+	$(CXX) $(FLAGS) MyAllocator.cpp -o alloc
+
+clean:
+	rm -rf *.o alloc deriv

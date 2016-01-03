@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cassert>
 #include <set>
+#include <cstring>
 
 class MyAllocator
 {
