@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <cassert>
+#include <sstream>
 
 std::map<unsigned, int> strToPoly(const std::string & str)
 {
@@ -71,9 +72,52 @@ std::map<unsigned, int> strToPoly(const std::string & str)
 	return poly;
 }
 
+void powerToStr(std::ostringstream & ss, unsigned power, int coef, bool printPlus = true)
+{
+	if(printPlus && coef > 0)
+	{
+		ss << '+';
+	}
+
+	if(coef != 1 && coef != -1)
+	{
+		ss << coef;
+		if(power > 0)
+			ss << '*';
+	}
+	else
+	{
+		if(power > 0 && coef == -1)
+			ss << '-';
+		else if(power == 0)
+			ss << coef;
+	}
+
+	if(power == 1)
+	{
+		ss << 'x';
+	}
+	else if(power > 1)
+	{
+		ss << "x^" << power;
+	}
+}
+
 std::string polyToStr(std::map<unsigned, int> & poly)
 {
-	return std::string("");
+	if(poly.empty()) return std::string("");
+	std::ostringstream ss;
+	auto it = poly.rbegin();
+
+	powerToStr(ss, it->first, it->second, false);
+
+	++it;
+	while(it != poly.rend())
+	{
+		powerToStr(ss, it->first, it->second);
+		++it;
+	}
+	return ss.str();
 }
 
 std::map<unsigned, int> df(const std::map<unsigned, int> & poly)
@@ -118,31 +162,31 @@ std::string derivative(std::string str)
 int main(int argc, char * argv[])
 {
 	ASSERT_EQ("0", derivative("0"));
-	ASSERT_EQ("5", derivative("0"));
-	ASSERT_EQ("-5", derivative("0"));
-	ASSERT_EQ("+5", derivative("0"));
-	ASSERT_EQ("234", derivative("0"));
-	ASSERT_EQ("-234", derivative("0"));
-	ASSERT_EQ("+234", derivative("0"));	
-	ASSERT_EQ("x", derivative("1"));
-	ASSERT_EQ("+x", derivative("1"));
-	ASSERT_EQ("-x", derivative("-1"));
-	ASSERT_EQ("2*x", derivative("2"));
-	ASSERT_EQ("543*x", derivative("543"));
-	ASSERT_EQ("-543*x", derivative("-543"));
-	ASSERT_EQ("256*x^1", derivative("256"));
-	ASSERT_EQ("-256*x^1", derivative("-256"));
-	ASSERT_EQ("x^13", derivative("13*x^12"));
-	ASSERT_EQ("1*x^13", derivative("13*x^12"));
-	ASSERT_EQ("-x^13", derivative("-13*x^12"));
-	ASSERT_EQ("4*x^4", derivative("16*x^3"));
-	ASSERT_EQ("-13*x^100", derivative("-1300*x^99"));
-	ASSERT_EQ("x^2+x", derivative("2*x+1"));
-	ASSERT_EQ("2*x^100+100*x^2", derivative("200*x^99+200*x"));
-	ASSERT_EQ("x^10000+x+1", derivative("10000*x^9999+1"));
-	ASSERT_EQ("-x^2-x^3", derivative("-3*x^2-2*x"));
-	ASSERT_EQ("x+x+x+x+x+x+x+x+x+x", derivative("10"));
-	ASSERT_EQ("-x+x-x+x-x+x-x+x-x+x-x", derivative("-1"));
+	ASSERT_EQ("0", derivative("5"));
+	ASSERT_EQ("0", derivative("-5"));
+	ASSERT_EQ("0", derivative("+5"));
+	ASSERT_EQ("0", derivative("234"));
+	ASSERT_EQ("0", derivative("-234"));
+	ASSERT_EQ("0", derivative("+234"));	
+	ASSERT_EQ("1", derivative("x"));
+	ASSERT_EQ("1", derivative("+x"));
+	ASSERT_EQ("-1", derivative("-x"));
+	ASSERT_EQ("2", derivative("2*x"));
+	ASSERT_EQ("543", derivative("543*x"));
+	ASSERT_EQ("-543", derivative("-543*x"));
+	ASSERT_EQ("256", derivative("256*x^1"));
+	ASSERT_EQ("-256", derivative("-256*x^1"));
+	ASSERT_EQ("13*x^12", derivative("x^13"));
+	ASSERT_EQ("13*x^12", derivative("1*x^13"));
+	ASSERT_EQ("-13*x^12", derivative("-x^13"));
+	ASSERT_EQ("16*x^3", derivative("4*x^4"));
+	ASSERT_EQ("-1300*x^99", derivative("-13*x^100"));
+	ASSERT_EQ("2*x+1", derivative("x^2+x"));
+	ASSERT_EQ("200*x^99+200*x", derivative("2*x^100+100*x^2"));
+	ASSERT_EQ("10000*x^9999+1", derivative("x^10000+x+1"));
+	ASSERT_EQ("-3*x^2-2*x", derivative("-x^2-x^3"));
+	ASSERT_EQ("10", derivative("x+x+x+x+x+x+x+x+x+x"));
+	ASSERT_EQ("-1", derivative("-x+x-x+x-x+x-x+x-x+x-x"));
 
 	std::cout << "OK" << std::endl;
 	return 0;
