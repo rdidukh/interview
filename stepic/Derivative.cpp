@@ -26,6 +26,8 @@ std::map<unsigned, int> strToPoly(const std::string & str)
 		{
 			sign = (c=='+')? 1 : -1;
 			poly[power] += sign*coef;
+			if(poly[power] == 0)
+				poly.erase(power);
 			state = Coef;
 			coef = 0;
 			power = 0;
@@ -40,6 +42,7 @@ std::map<unsigned, int> strToPoly(const std::string & str)
 			else if(c == 'x')
 			{
 				coef = 1;
+				power = 1;
 				state = Power;
 			}
 			else if(c == '*')
@@ -58,6 +61,10 @@ std::map<unsigned, int> strToPoly(const std::string & str)
 				power *= 10;
 				power += c - '0';
 			}
+			else if(c == 'x')
+			{
+				power = 1;
+			}
 			else if(c == '^')
 			{
 				power = 0;
@@ -68,6 +75,8 @@ std::map<unsigned, int> strToPoly(const std::string & str)
 			}
 		}	
 	}
+
+	poly[power] += sign*coef;
 
 	return poly;
 }
@@ -105,7 +114,7 @@ void powerToStr(std::ostringstream & ss, unsigned power, int coef, bool printPlu
 
 std::string polyToStr(std::map<unsigned, int> & poly)
 {
-	if(poly.empty()) return std::string("");
+	if(poly.empty()) return std::string("0");
 	std::ostringstream ss;
 	auto it = poly.rbegin();
 
@@ -123,7 +132,6 @@ std::string polyToStr(std::map<unsigned, int> & poly)
 std::map<unsigned, int> df(const std::map<unsigned, int> & poly)
 {
 	std::map<unsigned, int> result;
-	result[0] = 0;
 
 	for(const auto & x: poly)
 	{
@@ -147,13 +155,17 @@ void debugPrint(const std::map<unsigned, int> & poly)
 
 std::string derivative(std::string str)
 {
-	std::cout << "input: " << str << std::endl;
 	auto inPoly = strToPoly(str);
-	debugPrint(inPoly);
 	auto outPoly = df(inPoly);
-	debugPrint(inPoly);
 	std::string result = polyToStr(outPoly);
+
+	#ifdef SELFTEST
+	std::cout << "input: " << str << std::endl;
+	debugPrint(inPoly);
+	debugPrint(outPoly);
 	std::cout << "result: " << result << std::endl;
+	#endif
+
     return result;
 }
 
