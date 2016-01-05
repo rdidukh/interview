@@ -24,10 +24,10 @@ std::map<unsigned, int> strToPoly(const std::string & str)
 	{
 		if(c == '-' || c == '+')
 		{
-			sign = (c=='+')? 1 : -1;
 			poly[power] += sign*coef;
 			if(poly[power] == 0)
 				poly.erase(power);
+			sign = (c=='+')? 1 : -1;
 			state = Coef;
 			coef = 0;
 			power = 0;
