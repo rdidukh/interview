@@ -26,15 +26,22 @@
 		} \
 	} while(0);
 
-#define ASSERT_EQ(expected, real) \
+template<typename U, typename V> 
+void assert_eq(const U & expected, const V & actual, const char * expStr, const char * actStr)
+{
+	if(actual != expected)
+	{
+		std::cerr << RED_COLOR << "FAIL: " << actStr << " != " << expStr << NO_COLOR << std::endl; \
+		std::cerr << actStr << ": " << std::endl;	\
+		std::cerr << "Expected: " << expected << std::endl; \
+		std::cerr << "Actual: " << actual << std::endl; \
+		exit(1);	\
+	} else { \
+		std::cout << GREEN_COLOR << "OK: " << actStr << " == " << expStr << NO_COLOR << std::endl; \
+	}	\
+}
+
+#define ASSERT_EQ(expected, actual) \
 	do {	\
-		if((expected) != (real)) {	\
-			std::cerr << RED_COLOR << "FAIL: " #real " != " #expected << NO_COLOR << std::endl; \
-			std::cerr << #real ": " << std::endl;	\
-			std::cerr << "Expected: " << (expected) << std::endl; \
-			std::cerr << "Real: " << (real) << std::endl; \
-			exit(1);	\
-		} else { \
-			std::cout << GREEN_COLOR << "OK: " #real " == " #expected << NO_COLOR << std::endl; \
-		}	\
+		assert_eq(expected, actual, #expected, #actual); \
 	} while(0);

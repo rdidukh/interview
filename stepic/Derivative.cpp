@@ -77,6 +77,8 @@ std::map<unsigned, int> strToPoly(const std::string & str)
 	}
 
 	poly[power] += sign*coef;
+	if(poly[power] == 0)
+		poly.erase(power);
 
 	return poly;
 }
@@ -199,6 +201,11 @@ int main(int argc, char * argv[])
 	ASSERT_EQ("-3*x^2-2*x", derivative("-x^2-x^3"));
 	ASSERT_EQ("10", derivative("x+x+x+x+x+x+x+x+x+x"));
 	ASSERT_EQ("-1", derivative("-x+x-x+x-x+x-x+x-x+x-x"));
+	ASSERT_EQ("0", derivative("x-x"));
+	ASSERT_EQ("0", derivative("-x+x"));
+	ASSERT_EQ("0", derivative("x^2+1*x^2-2*x^2"));
+	ASSERT_EQ("-2*x", derivative("-75-x-x^2+x"));
+
 
 	std::cout << "OK" << std::endl;
 	return 0;

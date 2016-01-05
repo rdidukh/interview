@@ -1,12 +1,18 @@
-FLAGS=-Wall -std=c++11
+FLAGS+=-Wall -std=c++11
 
-all: alloc deriv
+all: Makefile alloc deriv
 
-deriv: Derivative.cpp
-	$(CXX) $(FLAGS) Derivative.cpp -o deriv
+deriv: Derivative.o 
+	$(CXX) Derivative.o -o deriv
 
-alloc: MyAllocator.cpp
-	$(CXX) $(FLAGS) MyAllocator.cpp -o alloc
+alloc: MyAllocator.o
+	$(CXX) $(FLAGS) MyAllocator.o -o alloc
+
+MyAllocator.o: MyAllocator.cpp test.h
+	$(CXX) -c $(FLAGS) MyAllocator.cpp
+
+Derivative.o: Derivative.cpp test.h
+	$(CXX) -c $(FLAGS) Derivative.cpp
 
 clean:
 	rm -rf *.o alloc deriv

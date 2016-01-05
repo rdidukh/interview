@@ -1,1 +1,7 @@
-g++ MyAllocator.cpp -o alloc -std=c++11
+Stepic C++ course.
+
+Build:
+make
+
+Build with selftest:
+FLAGS=-DSELFTEST make
