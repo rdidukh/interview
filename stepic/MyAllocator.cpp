@@ -5,6 +5,8 @@
 #include <set>
 #include <cstring>
 
+/* O(log(n)) allocator */
+template<size_t bsize>
 class MyAllocator
 {
 	struct Block
@@ -19,8 +21,7 @@ class MyAllocator
 	    bool free;
 	};
 
-	size_t bsize;
-	char * buffer;
+	char buffer[bsize];
 	Block nullBlock;
 	std::map<char *, Block> blocks;
 	std::map<size_t, std::set<char *>> freeSize;
@@ -125,17 +126,12 @@ class MyAllocator
 	}
 
 	public:
-	MyAllocator(size_t bufferSize)
+	MyAllocator()
 	{
-		bsize = bufferSize;
-		buffer = new char[bufferSize];
-		createBlock(buffer, bufferSize, true);
+		createBlock(buffer, bsize, true);
 	}
 	
-	~MyAllocator()
-	{
-		delete[] buffer;
-	}
+	~MyAllocator() {}
 
 	void * alloc(size_t size)
 	{
@@ -160,7 +156,22 @@ class MyAllocator
 		Block & next = nextBlock(charPtr);
 
 		/* There is enough place ahead of the current block */
-		if(next.free && block.size + next.size >= size)
+		if(block.size == size)
+		{
+
+		}
+		else if(block.size > size)
+		{
+			splitBlock(block, size);
+			Block & rest = blocks.at(block.ptr + size);
+			markBlockFree(rest);
+			if(next.free)
+			{
+				resizeBlock(rest, rest.size + next.size);
+				removeBlock(next);
+			}
+		}
+		else if(next.free && block.size + next.size >= size)
 		{
 			splitBlock(next, size-block.size);
 			removeBlock(next);
@@ -234,6 +245,21 @@ class MyAllocator
 		return buffer;
 	}
 
+    void *Alloc(unsigned int Size)
+    {
+    	return this->alloc(Size);
+    };
+
+    void *ReAlloc(void *Pointer, unsigned int Size)
+    {
+    	return this->realloc(Pointer, Size);
+    };
+
+    void Free(void *Pointer)
+    {
+    	return this->free(Pointer);
+    };
+
 #ifdef SELFTEST
 	void debugPrint()
 	{
@@ -274,8 +300,6 @@ class MyAllocator
 		int numFreeOne = 0, numFreeTwo = 0;
 		size_t accumSize = 0;
 		size_t accumFreeSizeOne = 0, accumFreeSizeTwo = 0;
-
-		char * prev = NULL;
 
 		for(auto it = blocks.begin(); it != blocks.end(); ++it)
 		{
@@ -327,11 +351,13 @@ class MyAllocator
 #endif
 };
 
+using SmallAllocator = MyAllocator<(1<<20)>;
+
 #include "test.h"
 
 int main()
 {
-	MyAllocator alloc(10);
+	MyAllocator<10> alloc;
 	char * buffer = alloc.getBuffer();
 	void * ptr[10] = {0};
 
@@ -435,6 +461,34 @@ int main()
 	ASSERT_EQ(0x1234, i16[0]);
 	ASSERT_EQ(0xBEEF, i16[1]);
 	alloc.free(i16);
+
+	{
+		SmallAllocator A1;
+		int * A1_P1 = (int *) A1.Alloc(sizeof(int));
+		A1_P1 = (int *) A1.ReAlloc(A1_P1, 2 * sizeof(int));
+		A1.Free(A1_P1);
+
+		SmallAllocator A2;
+		int * A2_P1 = (int *) A2.Alloc(10 * sizeof(int));
+		for(unsigned int i = 0; i < 10; i++) A2_P1[i] = i;
+		for(unsigned int i = 0; i < 10; i++) ASSERT_EQ(i, A2_P1[i]);
+
+		int * A2_P2 = (int *) A2.Alloc(10 * sizeof(int));
+		for(unsigned int i = 0; i < 10; i++) A2_P2[i] = -1;
+		for(unsigned int i = 0; i < 10; i++) ASSERT_EQ(i, A2_P1[i]); 
+		for(unsigned int i = 0; i < 10; i++) ASSERT_EQ(-1, A2_P2[i]);
+		A2_P1 = (int *) A2.ReAlloc(A2_P1, 20 * sizeof(int));
+		for(unsigned int i = 10; i < 20; i++) A2_P1[i] = i;
+		for(unsigned int i = 0; i < 20; i++) ASSERT_EQ(i, A2_P1[i]);
+		for(unsigned int i = 0; i < 10; i++) ASSERT_EQ(-1, A2_P2[i]); 
+
+		A2_P1 = (int *) A2.ReAlloc(A2_P1, 5 * sizeof(int));
+		for(unsigned int i = 0; i < 5; i++) ASSERT_EQ(i, A2_P1[i]);
+		for(unsigned int i = 0; i < 10; i++) ASSERT_EQ(-1, A2_P2[i]);
+
+		A2.Free(A2_P1);
+		A2.Free(A2_P2);
+	}
 
 	std::cout << "OK" << std::endl;
 
