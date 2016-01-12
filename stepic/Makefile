@@ -1,4 +1,4 @@
-FLAGS+=-Wall -std=c++11
+FLAGS+=-Wall -std=c++11 -I../test
 
 all: Makefile alloc deriv
 
